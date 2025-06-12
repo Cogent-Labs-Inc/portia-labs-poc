@@ -12,6 +12,8 @@ from portia import (
     open_source_tool_registry,
 )
 
+AI_MODEL = "openai/gpt-4.1-nano"
+
 
 class Tee:
     """A helper class to redirect stdout to both the console and a file."""
@@ -164,9 +166,9 @@ def main():
     )
 
     # --- Execute the Manually Built Plan ---
-    my_config = Config.from_default(default_model="openai/gpt-4.1-nano")
+    my_config = Config.from_default(default_model=AI_MODEL)
     tool_registry = open_source_tool_registry + PortiaToolRegistry(my_config).replace_tool(
-        LLMTool(model="openai/gpt-4.1-nano")
+        LLMTool(model=AI_MODEL)
     )
     portia = Portia(config=my_config, tools=tool_registry)
 
