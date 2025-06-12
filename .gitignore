@@ -1,0 +1,4 @@
+.portia
+logs/
+logs_manual/
+.env
