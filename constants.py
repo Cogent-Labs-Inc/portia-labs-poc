@@ -1,0 +1,6 @@
+default_model="openai/gpt-4.1-nano"
+planning_model="openai/o3-mini"
+execution_model="openai/gpt-4.1-nano"
+introspection_model="openai/gpt-4.1-nano"
+summarizer_model="openai/gpt-4.1-nano"
+tool_model="openai/gpt-4.1-nano"

@@ -3,41 +3,33 @@ import sys
 from datetime import datetime
 
 from dotenv import load_dotenv
-from portia import Config, Portia, open_source_tool_registry, PortiaToolRegistry, LLMTool
+from portia import (
+    Config,
+    LLMTool,
+    Portia,
+    PortiaToolRegistry,
+    open_source_tool_registry,
+)
 from prompts import RESEARCH_PROMPT_TEMPLATE
+from utils import Tee, get_product_details
 
-AI_MODEL = "openai/gpt-4.1-nano"
-
-
-class Tee:
-    """A helper class to redirect stdout to both the console and a file."""
-
-    def __init__(self, console, file):
-        self.console = console
-        self.file = file
-
-    def write(self, data):
-        self.console.write(data)
-        self.file.write(data)
-        self.flush()
-
-    def flush(self):
-        self.console.flush()
-        self.file.flush()
+from constants import (
+    default_model,
+    execution_model,
+    introspection_model,
+    planning_model,
+    summarizer_model,
+    tool_model,
+)
 
 
-def get_product_details():
-    """Gathers product details from the user via the command line."""
-    product_details = {}
-    print("---")
-    print("Please enter the details for the product you want to research.")
-    product_details["name"] = "Carbon Car Models"
-    product_details["description"] = "Diecast model cars made of high quality carbon fiber"
-    product_details["target_audience"] = "Adults who are into cars and/or driving"
-    product_details["primary_competitors"] = "Tamiya, Maisto"
-    product_details["differentiators"] = "Made of carbon fiber, high quality, lightweight"
-    print("---\n")
-    return product_details
+def generate_and_display_plan(portia_config, prompt):
+    print("Generating a plan for the research task. Please wait...")
+    new_plan = portia_config.plan(prompt)
+    print("\n--- PLAN GENERATED ---")
+    print(new_plan.pretty_print())
+    print("----------------------\n")
+    return new_plan
 
 
 def main():
@@ -70,25 +62,26 @@ def main():
     # Instantiate Portia. We combine the open_source_tool_registry (which includes
     # tools like search and a calculator) with the PortiaToolRegistry for any
     # potential cloud-hosted tools. The llm_tool is available by default.
-    my_config = Config.from_default(default_model=AI_MODEL, planning_model=AI_MODEL, execution_model=AI_MODEL, introspection_model=AI_MODEL, summarizer_model=AI_MODEL)
+    my_config = Config.from_default(default_model=default_model, planning_model=planning_model, execution_model=execution_model, introspection_model=introspection_model, summarizer_model=summarizer_model)
     tool_registry = open_source_tool_registry + PortiaToolRegistry(my_config).replace_tool(
-        LLMTool(model=AI_MODEL)
+        LLMTool(model=tool_model)
     )
     portia = Portia(config=my_config, tools=tool_registry)
 
-    # Generate the plan from the detailed prompt
-    print("Generating a plan for the research task. Please wait...")
-    plan = portia.plan(prompt)
+    plan = generate_and_display_plan(portia, prompt)
 
-    print("\n--- PLAN GENERATED ---")
-    print(plan.pretty_print())
-    print("----------------------\n")
-
-    # Get user confirmation before executing the plan
-    user_input = input("Are you happy with this plan? (y/n): ")
-    if user_input.lower() != "y":
-        print("Execution cancelled by user.")
-        sys.exit(0)
+    while True:
+        user_input = input("Are you happy with this plan? Please enter 'y' to accept, 'n' to regenerate, or 'q' to quit: ")
+        if user_input.lower() == "y":
+            break
+        elif user_input.lower() == "n":
+            print("Regenerating plan...")
+            plan = generate_and_display_plan(portia, prompt)
+        elif user_input.lower() == "q":
+            print("Execution cancelled by user.")
+            sys.exit(0)
+        else:
+            print("Please enter 'y' to accept the plan, 'n' to regenerate it, or 'q' to quit.")
 
     # Execute the plan
     print("\nExecuting the plan. This may take several minutes...")
