@@ -39,4 +39,19 @@ With the clean, summarized data, perform the final analysis using the llm_tool.
 Using the llm_tool, assemble all the generated components into a single, comprehensive markdown document. The report should be well-structured with clear headings for each section (e.g., Executive Summary, Market Size, Market Size Calculations, Key Assumptions, Methodology, Competitor Research Summary).
 
 The final output of this entire plan must be the complete markdown report.
-""" 
+"""
+
+SIMPLIFIED_RESEARCH_PROMPT_TEMPLATE = """
+Please perform a comprehensive market analysis for a new product and generate a detailed report. I need to understand the Total Addressable Market (TAM) and Serviceable Available Market (SAM).
+
+Your analysis should be thorough. Start by planning your research, then gather data iteratively until you have enough information. Once you have the data, I need you to calculate the market size, summarize your findings, and assemble everything into a well-structured markdown report.
+
+**Product Details:**
+*   **Name:** {name}
+*   **Description:** {description}
+*   **Target Audience:** {target_audience}
+*   **Primary Competitors:** {primary_competitors}
+*   **Differentiators:** {differentiators}
+
+The final output should be the complete markdown report including your methodology, assumptions, and calculations.
+"""
