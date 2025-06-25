@@ -2,6 +2,7 @@ import os
 import sys
 from datetime import datetime
 from portia.plan import PlanBuilder
+from contextlib import contextmanager
 
 
 class Tee:
@@ -35,13 +36,33 @@ def get_product_details():
     return product_details
 
 
+@contextmanager
+def logging_context(log_dir):
+    """A context manager to handle logging setup and teardown."""
+    os.makedirs(log_dir, exist_ok=True)
+    log_file_path = os.path.join(
+        log_dir, f"run_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log"
+    )
+
+    original_stdout = sys.stdout
+    with open(log_file_path, "w", encoding="utf-8") as log_file:
+        sys.stdout = Tee(original_stdout, log_file)
+        print(f"--- Console output is being mirrored to {log_file_path} ---\n")
+
+        try:
+            yield
+        finally:
+            # This block will always run, even if an error occurs inside the 'with' statement.
+            sys.stdout = original_stdout
+
+
 def get_manual_plan(query, product_details):
     """Builds the manual plan for the market research agent."""
     return (
         PlanBuilder(query)
         # Step 0: Generate initial search queries
         .step(
-            task=f"Generate a detailed research plan with initial search queries for {product_details['name']}.",
+            task=f"Generate a detailed research plan with up to 8 initial search queries for {product_details['name']}.",
             tool_id="llm_tool",
             output="$initial_search_queries",
         )
@@ -61,7 +82,7 @@ def get_manual_plan(query, product_details):
         .input(name="$raw_search_results_cycle1", description="Raw results from initial market research search queries")
         # Step 3: Analyze for gaps and create follow-up
         .step(
-            task="Analyze the condensed results to identify gaps and generate follow-up questions.",
+            task="Analyze the condensed results to identify gaps and generate up to 8 follow-up questions.",
             tool_id="llm_tool",
             output="$followup_questions_cycle1",
         )
@@ -92,7 +113,7 @@ def get_manual_plan(query, product_details):
         .input(name="$condensed_results_cycle2", description="Condensed results from the second search cycle (if it ran).")
         # Step 7: Competitive Summary
         .step(
-            task="Create a narrative summary of the competitive landscape for Tamiya and Maisto.",
+            task=f"Create a narrative summary of the competitive landscape for {product_details['primary_competitors']}.",
             tool_id="llm_tool",
             output="$competitor_summary",
         )
@@ -129,4 +150,4 @@ def get_manual_plan(query, product_details):
         .input(name="$methodology_explanation", description="Methodology and assumptions")
         .input(name="$competitor_summary", description="Competitive landscape summary")
         .build()
-    ) 
+    )
