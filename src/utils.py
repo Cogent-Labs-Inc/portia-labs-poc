@@ -2,6 +2,7 @@ import os
 import sys
 from datetime import datetime
 from portia.plan import PlanBuilder
+from contextlib import contextmanager
 
 
 class Tee:
@@ -33,6 +34,26 @@ def get_product_details():
     product_details["differentiators"] = input("Key Differentiators: ")
     print("---\n")
     return product_details
+
+
+@contextmanager
+def logging_context(log_dir):
+    """A context manager to handle logging setup and teardown."""
+    os.makedirs(log_dir, exist_ok=True)
+    log_file_path = os.path.join(
+        log_dir, f"run_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log"
+    )
+
+    original_stdout = sys.stdout
+    with open(log_file_path, "w", encoding="utf-8") as log_file:
+        sys.stdout = Tee(original_stdout, log_file)
+        print(f"--- Console output is being mirrored to {log_file_path} ---\n")
+
+        try:
+            yield
+        finally:
+            # This block will always run, even if an error occurs inside the 'with' statement.
+            sys.stdout = original_stdout
 
 
 def get_manual_plan(query, product_details):
