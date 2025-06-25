@@ -25,7 +25,6 @@ The core application logic (base classes, prompts, utilities) is located in the 
     PORTIA_API_KEY="your_portia_key_here"
     OPENAI_API_KEY="your_openai_key_here"
     TAVILY_API_KEY="your_tavily_key_here"
-    GOOGLE_API_KEY="your_google_key_here"
     ```
 
 ## Usage
